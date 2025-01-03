@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RotateCcwIcon } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/")({
@@ -34,6 +35,16 @@ function IndexComponent() {
       setStatus("paused");
     }
   };
+
+  const handleReset = () => {
+    setSeconds(TIME_IN_SECONDS);
+    setStatus("idle");
+    if (intervalId) {
+      clearInterval(intervalId);
+      setIntervalId(null);
+    }
+  };
+
   return (
     <div className="flex items-center h-svh">
       <div className="flex flex-col items-center justify-center h-full gap-3 w-96 bg-neutral-50">
@@ -44,32 +55,43 @@ function IndexComponent() {
           :{(seconds % 60).toString().padStart(2, "0")}
         </div>
 
-        {status === "idle" && (
-          <button
-            onClick={handleStart}
-            className="px-3 text-white bg-blue-600 rounded-lg h-9"
-          >
-            Start Session
-          </button>
-        )}
+        <div className="flex gap-2">
+          {status === "idle" && (
+            <button
+              onClick={handleStart}
+              className="px-3 text-white bg-blue-600 rounded-lg h-9"
+            >
+              Start Session
+            </button>
+          )}
 
-        {status === "active" && (
-          <button
-            onClick={handlePause}
-            className="px-3 text-white bg-red-600 rounded-lg h-9"
-          >
-            Pause
-          </button>
-        )}
+          {status === "active" && (
+            <button
+              onClick={handlePause}
+              className="px-3 text-white bg-red-600 rounded-lg h-9"
+            >
+              Pause
+            </button>
+          )}
 
-        {status === "paused" && (
-          <button
-            onClick={handleStart}
-            className="px-3 text-white bg-green-600 rounded-lg h-9"
-          >
-            Resume
-          </button>
-        )}
+          {status === "paused" && (
+            <button
+              onClick={handleStart}
+              className="px-3 text-white bg-green-600 rounded-lg h-9"
+            >
+              Resume
+            </button>
+          )}
+
+          {status != "idle" && (
+            <button
+              onClick={handleReset}
+              className="px-3 text-gray-500 bg-gray-200 rounded-lg h-9"
+            >
+              <RotateCcwIcon size={16} />
+            </button>
+          )}
+        </div>
       </div>
       <div className="flex-1"></div>
     </div>

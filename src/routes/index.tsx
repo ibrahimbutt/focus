@@ -6,6 +6,11 @@ export const Route = createFileRoute("/")({
 
 function IndexComponent() {
   return (
-    <h1 className="flex items-center justify-center h-screen">Hello, World!</h1>
+    <div className="flex items-center h-svh">
+      <div className="flex items-center justify-center h-full w-96 bg-neutral-50">
+        <div className="text-6xl font-medium">25:00</div>
+      </div>
+      <div className="flex-1"></div>
+    </div>
   );
 }

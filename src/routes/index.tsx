@@ -1,20 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RotateCcwIcon } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const Route = createFileRoute("/")({
   component: IndexComponent,
 });
 
 const TIME_IN_SECONDS = 25 * 60;
-const CHANNEL_NAME = "pomodoro-sync";
+const CHANNEL_NAME = "session-sync";
+
+enum SessionStatus {
+  IDLE = "idle",
+  ACTIVE = "active",
+  PAUSED = "paused",
+}
 
 type TimerMessage =
   | {
       type: "state_update";
       payload: {
         seconds: number;
-        status: "idle" | "active" | "paused";
+        status: SessionStatus;
         completedSessions: number;
       };
     }
@@ -25,7 +31,7 @@ type TimerMessage =
       type: "provide_state";
       payload: {
         seconds: number;
-        status: "idle" | "active" | "paused";
+        status: SessionStatus;
         completedSessions: number;
       };
     };
@@ -33,7 +39,7 @@ type TimerMessage =
 function IndexComponent() {
   const [intervalId, setIntervalId] = useState<number | null>(null);
   const [seconds, setSeconds] = useState(TIME_IN_SECONDS);
-  const [status, setStatus] = useState<"idle" | "active" | "paused">("idle");
+  const [status, setStatus] = useState<SessionStatus>(SessionStatus.IDLE);
   const [completedSessions, setCompletedSessions] = useState(0);
   const channelRef = useRef<BroadcastChannel | null>(null);
 
@@ -47,7 +53,10 @@ function IndexComponent() {
 
       switch (message.type) {
         case "state_update":
-          if (message.payload.status === "active" && status !== "active") {
+          if (
+            message.payload.status === SessionStatus.ACTIVE &&
+            status !== SessionStatus.ACTIVE
+          ) {
             if (intervalId) {
               clearInterval(intervalId);
               setIntervalId(null);
@@ -59,7 +68,7 @@ function IndexComponent() {
           break;
 
         case "request_state":
-          if (status === "active") {
+          if (status === SessionStatus.ACTIVE) {
             channelRef.current?.postMessage({
               type: "provide_state",
               payload: {
@@ -72,7 +81,7 @@ function IndexComponent() {
           break;
 
         case "provide_state":
-          if (status !== "active") {
+          if (status !== SessionStatus.ACTIVE) {
             setSeconds(message.payload.seconds);
             setStatus(message.payload.status);
             setCompletedSessions(message.payload.completedSessions);
@@ -92,7 +101,7 @@ function IndexComponent() {
         clearInterval(intervalId);
         setIntervalId(null);
       }
-      setStatus("idle");
+      setStatus(SessionStatus.IDLE);
       setCompletedSessions((prev) => prev + 1);
       setSeconds(TIME_IN_SECONDS);
 
@@ -100,7 +109,7 @@ function IndexComponent() {
         type: "state_update",
         payload: {
           seconds: TIME_IN_SECONDS,
-          status: "idle",
+          status: SessionStatus.IDLE,
           completedSessions: completedSessions + 1,
         },
       });
@@ -108,7 +117,7 @@ function IndexComponent() {
   }, [seconds, intervalId, completedSessions]);
 
   const handleStart = () => {
-    setStatus("active");
+    setStatus(SessionStatus.ACTIVE);
     const interval = setInterval(() => {
       setSeconds((prev) => {
         const newSeconds = prev - 1;
@@ -116,7 +125,7 @@ function IndexComponent() {
           type: "state_update",
           payload: {
             seconds: newSeconds,
-            status: "active",
+            status: SessionStatus.ACTIVE,
             completedSessions,
           },
         });
@@ -129,7 +138,7 @@ function IndexComponent() {
       type: "state_update",
       payload: {
         seconds,
-        status: "active",
+        status: SessionStatus.ACTIVE,
         completedSessions,
       },
     });
@@ -139,13 +148,13 @@ function IndexComponent() {
     if (intervalId) {
       clearInterval(intervalId);
       setIntervalId(null);
-      setStatus("paused");
+      setStatus(SessionStatus.PAUSED);
 
       channelRef.current?.postMessage({
         type: "state_update",
         payload: {
           seconds,
-          status: "paused",
+          status: SessionStatus.PAUSED,
           completedSessions,
         },
       });
@@ -158,13 +167,13 @@ function IndexComponent() {
       setIntervalId(null);
     }
     setSeconds(TIME_IN_SECONDS);
-    setStatus("idle");
+    setStatus(SessionStatus.IDLE);
 
     channelRef.current?.postMessage({
       type: "state_update",
       payload: {
         seconds: TIME_IN_SECONDS,
-        status: "idle",
+        status: SessionStatus.IDLE,
         completedSessions,
       },
     });
@@ -193,7 +202,7 @@ function IndexComponent() {
               Start Session
             </button>
           )}
-          {status === "active" && (
+          {status === SessionStatus.ACTIVE && (
             <button
               onClick={handlePause}
               className="px-3 text-white bg-red-600 rounded-lg h-9"
@@ -201,7 +210,7 @@ function IndexComponent() {
               Pause
             </button>
           )}
-          {status === "paused" && (
+          {status === SessionStatus.PAUSED && (
             <button
               onClick={handleStart}
               className="px-3 text-white bg-green-600 rounded-lg h-9"
@@ -209,7 +218,7 @@ function IndexComponent() {
               Resume
             </button>
           )}
-          {status !== "idle" && (
+          {status !== SessionStatus.IDLE && (
             <button
               onClick={handleReset}
               className="px-3 text-gray-500 bg-gray-200 rounded-lg h-9"

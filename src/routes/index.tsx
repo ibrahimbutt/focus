@@ -27,12 +27,18 @@ function IndexComponent() {
             .padStart(2, "0")}
           :{(seconds % 60).toString().padStart(2, "0")}
         </div>
-        <button
-          onClick={handleStart}
-          className="px-3 text-white bg-blue-600 rounded-lg h-9"
-        >
-          Start Session
-        </button>
+        {seconds < TIME_IN_SECONDS ? (
+          <button className="px-3 text-white bg-red-600 rounded-lg h-9">
+            Pause
+          </button>
+        ) : (
+          <button
+            onClick={handleStart}
+            className="px-3 text-white bg-blue-600 rounded-lg h-9"
+          >
+            Start Session
+          </button>
+        )}
       </div>
       <div className="flex-1"></div>
     </div>

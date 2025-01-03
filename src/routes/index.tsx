@@ -59,7 +59,7 @@ function IndexComponent() {
             #{completedSessions}
           </div>
         ) : null}
-        <div className="text-6xl font-medium ">
+        <div className="text-6xl font-medium tabular-nums">
           {Math.floor(seconds / 60)
             .toString()
             .padStart(2, "0")}

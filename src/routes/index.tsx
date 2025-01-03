@@ -7,16 +7,31 @@ export const Route = createFileRoute("/")({
 
 const TIME_IN_SECONDS = 25 * 60;
 
-// TODO: Handle pausing
 function IndexComponent() {
+  const [intervalId, setIntervalId] = useState<number | null>(null);
   const [seconds, setSeconds] = useState(TIME_IN_SECONDS);
+  const [status, setStatus] = useState<"idle" | "active" | "paused">("idle");
 
   const handleStart = () => {
     const interval = setInterval(() => {
       setSeconds((seconds) => seconds - 1);
+      if (seconds === 0) {
+        clearInterval(interval);
+        setSeconds(TIME_IN_SECONDS);
+        setStatus("idle");
+      } else {
+        setStatus("active");
+      }
     }, 1000);
+    setIntervalId(interval);
+  };
 
-    return () => clearInterval(interval);
+  const handlePause = () => {
+    if (intervalId) {
+      clearInterval(intervalId);
+      setIntervalId(null);
+      setStatus("paused");
+    }
   };
   return (
     <div className="flex items-center h-svh">
@@ -27,16 +42,31 @@ function IndexComponent() {
             .padStart(2, "0")}
           :{(seconds % 60).toString().padStart(2, "0")}
         </div>
-        {seconds < TIME_IN_SECONDS ? (
-          <button className="px-3 text-white bg-red-600 rounded-lg h-9">
-            Pause
-          </button>
-        ) : (
+
+        {status === "idle" && (
           <button
             onClick={handleStart}
             className="px-3 text-white bg-blue-600 rounded-lg h-9"
           >
             Start Session
+          </button>
+        )}
+
+        {status === "active" && (
+          <button
+            onClick={handlePause}
+            className="px-3 text-white bg-red-600 rounded-lg h-9"
+          >
+            Pause
+          </button>
+        )}
+
+        {status === "paused" && (
+          <button
+            onClick={handleStart}
+            className="px-3 text-white bg-green-600 rounded-lg h-9"
+          >
+            Resume
           </button>
         )}
       </div>

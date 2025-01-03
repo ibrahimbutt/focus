@@ -1,29 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RotateCcwIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/")({
   component: IndexComponent,
 });
 
-const TIME_IN_SECONDS = 25 * 60;
+const TIME_IN_SECONDS = 1 * 10;
 
 function IndexComponent() {
   const [intervalId, setIntervalId] = useState<number | null>(null);
   const [seconds, setSeconds] = useState(TIME_IN_SECONDS);
   const [status, setStatus] = useState<"idle" | "active" | "paused">("idle");
+  const [completedSessions, setCompletedSessions] = useState(0);
+
+  useEffect(() => {
+    if (seconds === 0) {
+      if (intervalId) {
+        clearInterval(intervalId);
+        setIntervalId(null);
+      }
+      setStatus("idle");
+      setCompletedSessions((prev) => prev + 1);
+      setSeconds(TIME_IN_SECONDS);
+    }
+  }, [seconds, intervalId]);
 
   const handleStart = () => {
     setStatus("active");
     const interval = setInterval(() => {
-      setSeconds((prevSeconds) => {
-        if (prevSeconds <= 1) {
-          clearInterval(interval);
-          setStatus("idle");
-          return TIME_IN_SECONDS;
-        }
-        return prevSeconds - 1;
-      });
+      setSeconds((prev) => prev - 1);
     }, 1000);
     setIntervalId(interval);
   };
@@ -37,25 +43,29 @@ function IndexComponent() {
   };
 
   const handleReset = () => {
-    setSeconds(TIME_IN_SECONDS);
-    setStatus("idle");
     if (intervalId) {
       clearInterval(intervalId);
       setIntervalId(null);
     }
+    setSeconds(TIME_IN_SECONDS);
+    setStatus("idle");
   };
 
   return (
     <div className="flex items-center h-svh">
-      <div className="flex flex-col items-center justify-center h-full gap-3 w-96 bg-neutral-50">
-        <div className="text-6xl font-medium">
+      <div className="flex flex-col items-center justify-center h-full gap-1 w-96 bg-neutral-50">
+        {completedSessions > 0 ? (
+          <div className="text-base font-medium leading-none tracking-widest text-gray-500 ">
+            #{completedSessions}
+          </div>
+        ) : null}
+        <div className="text-6xl font-medium ">
           {Math.floor(seconds / 60)
             .toString()
             .padStart(2, "0")}
           :{(seconds % 60).toString().padStart(2, "0")}
         </div>
-
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-3">
           {status === "idle" && (
             <button
               onClick={handleStart}

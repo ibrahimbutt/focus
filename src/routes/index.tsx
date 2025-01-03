@@ -13,15 +13,16 @@ function IndexComponent() {
   const [status, setStatus] = useState<"idle" | "active" | "paused">("idle");
 
   const handleStart = () => {
+    setStatus("active");
     const interval = setInterval(() => {
-      setSeconds((seconds) => seconds - 1);
-      if (seconds === 0) {
-        clearInterval(interval);
-        setSeconds(TIME_IN_SECONDS);
-        setStatus("idle");
-      } else {
-        setStatus("active");
-      }
+      setSeconds((prevSeconds) => {
+        if (prevSeconds <= 1) {
+          clearInterval(interval);
+          setStatus("idle");
+          return TIME_IN_SECONDS;
+        }
+        return prevSeconds - 1;
+      });
     }, 1000);
     setIntervalId(interval);
   };

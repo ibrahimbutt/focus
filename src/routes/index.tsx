@@ -5,14 +5,15 @@ export const Route = createFileRoute("/")({
   component: IndexComponent,
 });
 
-// TODO: Handle multiplen starts
+const TIME_IN_SECONDS = 25 * 60;
+
 // TODO: Handle pausing
 function IndexComponent() {
-  const [time, setTime] = useState(25 * 60);
+  const [seconds, setSeconds] = useState(TIME_IN_SECONDS);
 
   const handleStart = () => {
     const interval = setInterval(() => {
-      setTime((time) => time - 1);
+      setSeconds((seconds) => seconds - 1);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -21,10 +22,10 @@ function IndexComponent() {
     <div className="flex items-center h-svh">
       <div className="flex flex-col items-center justify-center h-full gap-3 w-96 bg-neutral-50">
         <div className="text-6xl font-medium">
-          {Math.floor(time / 60)
+          {Math.floor(seconds / 60)
             .toString()
             .padStart(2, "0")}
-          :{(time % 60).toString().padStart(2, "0")}
+          :{(seconds % 60).toString().padStart(2, "0")}
         </div>
         <button
           onClick={handleStart}
